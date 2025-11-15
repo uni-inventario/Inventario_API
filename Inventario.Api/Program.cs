@@ -1,18 +1,23 @@
 using Inventario.Core.Data;
 using Microsoft.EntityFrameworkCore;
+using DotNetEnv;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+var  envFile = builder.Environment.IsDevelopment() ? "../.env.development" : "/app/.env";
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+Env.Load(envFile);
+
+var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING");
 
 builder.Services.AddDbContext<ContextRepository>(options =>
 {
-    var connectionString = builder.Configuration.GetConnectionString("Default");
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
 });
+
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
@@ -23,8 +28,14 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseRouting();
+app.UseHttpsRedirection();
 app.MapControllers();
 
-app.UseHttpsRedirection();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ContextRepository>();
+    db.Database.Migrate();
+}
 
 app.Run();

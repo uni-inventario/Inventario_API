@@ -1,3 +1,4 @@
+using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
@@ -7,7 +8,8 @@ namespace Inventario.Core.Data
     {
         public ContextRepository CreateDbContext(string[] args)
         {
-            var connectionString = "Server=127.0.0.1;Port=3306;Database=inventario;User=root;";
+            Env.Load("../.env.development");
+            var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING");
 
             var optionsBuilder = new DbContextOptionsBuilder<ContextRepository>();
             optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));

@@ -1,0 +1,13 @@
+services:
+  inventario_api:
+    container_name: inventario_api
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    image: inventario_api:latest
+    ports:
+      - "5000:5000"
+      - "5001:5001"
+    environment:
+      - CONNECTION_STRING=${CONNECTION_STRING}
+      - ASPNETCORE_ENVIRONMENT=Production
