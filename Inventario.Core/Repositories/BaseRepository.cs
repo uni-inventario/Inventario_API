@@ -1,5 +1,6 @@
 using Inventario.Core.Data;
 using Inventario.Core.Interfaces.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace Inventario.Core.Repositories
 {
@@ -12,27 +13,29 @@ namespace Inventario.Core.Repositories
             _context = context;
         }
 
-        public void AddAsync(T entity)
+        public async Task<T> AddAsync(T entity)
         {
-            _context.Set<T>().Add(entity);
-            _context.SaveChanges();
+            await _context.Set<T>().AddAsync(entity);
+            await _context.SaveChangesAsync();
+            return entity;
         }
 
-        public void UpdateAsync(T entity)
+        public async Task<T> UpdateAsync(T entity)
         {
             _context.Set<T>().Update(entity);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
+            return entity;
         }
 
-        public T GetByIdAsync(long id)
+        public async Task<T> GetByIdAsync(long id)
         {
-            return _context.Set<T>().Find(id);
+            return await _context.Set<T>().FindAsync(id);
         }
 
-        public void AddRangeAsync(List<T> entities)
+        public async Task AddRangeAsync(List<T> entities)
         {
-            _context.Set<T>().AddRange(entities);
-            _context.SaveChanges();
+            await _context.Set<T>().AddRangeAsync(entities);
+            await _context.SaveChangesAsync();
         }
     }
 }

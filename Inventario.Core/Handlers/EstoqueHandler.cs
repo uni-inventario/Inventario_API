@@ -1,0 +1,158 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using AutoMapper;
+using Inventario.Core.DTOs;
+using Inventario.Core.DTOs.Requests;
+using Inventario.Core.DTOs.Responses;
+using Inventario.Core.Interfaces.Repositories;
+using Inventario.Core.Models;
+using Inventario.Core.Utils;
+
+namespace Inventario.Core.Handlers
+{
+    public class EstoqueHandler
+    {
+        private readonly IUsuarioRepository _usuarioRepository;
+        private readonly IEstoqueRepository _estoqueRepository;
+        private readonly IMapper _mapper;
+
+        public EstoqueHandler(IMapper mapper, IUsuarioRepository usuarioRepository, IEstoqueRepository estoqueRepository)
+        {
+            _mapper = mapper;
+            _usuarioRepository = usuarioRepository;
+            _estoqueRepository = estoqueRepository;
+        }
+
+        public async Task<ApiResponse<List<EstoqueResponseDto>>> GetByUsuarioIdAsync(long usuarioId)
+        {
+            try
+            {
+                var usuario = await _usuarioRepository.GetByIdAsync(usuarioId);
+                if (usuario == null)
+                {
+                    return new ApiResponse<List<EstoqueResponseDto>>(new List<string> { "Usuário não encontrado." });
+                }
+                var estoques = await _estoqueRepository.GetByUsuarioIdAsync(usuarioId);
+                return new ApiResponse<List<EstoqueResponseDto>>(_mapper.Map<List<EstoqueResponseDto>>(estoques));
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro ao obter estoques por Id do Usuário:", ex);
+            }
+        }
+
+        public async Task<ApiResponse<EstoqueResponseDto>> GetByIdAsync(long id)
+        {
+            try
+            {
+                var estoque = await _estoqueRepository.GetByIdAsync(id);
+
+                return new ApiResponse<EstoqueResponseDto>(_mapper.Map<EstoqueResponseDto>(estoque));
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro ao obter estoque por Id:", ex);
+            }
+        }
+
+        public async Task<ApiResponse<EstoqueResponseDto>> AddAsync(EstoqueRequestDto? entity)
+        {
+            try
+            {
+                if (entity is null)
+                    return new ApiResponse<EstoqueResponseDto>(new List<string>() { "O Estoque não pode ser nulo." });
+
+                var estoque = _mapper.Map<Estoque>(entity);
+
+                var validationResult = await Validate(estoque);
+                if (validationResult.IsValid == false)
+                    return new ApiResponse<EstoqueResponseDto>(validationResult.Errors);
+
+                var createdEstoque = await _estoqueRepository.AddAsync(estoque);
+
+                return new ApiResponse<EstoqueResponseDto>(_mapper.Map<EstoqueResponseDto>(createdEstoque));
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro ao adicionar estoque:", ex);
+            }
+        }
+
+        public async Task<ApiResponse<EstoqueResponseDto>> UpdateAsync(EstoqueRequestDto? entity)
+        {
+            try
+            {
+                if (entity is null)
+                    return new ApiResponse<EstoqueResponseDto>(new List<string>() { "O Estoque não pode ser nulo." });
+
+                if (entity.Id is null || entity.Id <= 0)
+                    return new ApiResponse<EstoqueResponseDto>(new List<string>() { "O Id do Estoque é obrigatório para atualização." });
+
+                var estoque = _mapper.Map<Estoque>(entity);
+
+                var validationResult = await Validate(estoque, isUpdate: true);
+                if (validationResult.IsValid == false)
+                    return new ApiResponse<EstoqueResponseDto>(validationResult.Errors);
+
+                var updatedEstoque = await _estoqueRepository.UpdateAsync(estoque);
+
+                return new ApiResponse<EstoqueResponseDto>(_mapper.Map<EstoqueResponseDto>(updatedEstoque));
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro ao atualizar estoque:", ex);
+            }
+        }
+
+        #region private
+
+        private async Task<ValidationResultDto> Validate(Estoque? estoque, bool isUpdate = false)
+        {
+            var errors = new List<string>();
+
+            if (estoque is null)
+                return new ValidationResultDto
+                {
+                    IsValid = false,
+                    Errors = new List<string> { "O estoque não pode ser nulo." }
+                };
+
+            if (string.IsNullOrEmpty(estoque.Nome))
+                return new ValidationResultDto
+                {
+                    IsValid = false,
+                    Errors = new List<string> { "O nome do estorque é obrigatório." }
+                };
+
+            if (isUpdate)
+            {
+                var estoqueExistente = await _estoqueRepository.GetByIdAsync(estoque.Id);
+                if (estoqueExistente == null)
+                    return new ValidationResultDto
+                    {
+                        IsValid = false,
+                        Errors = new List<string> { "Estoque não encontrado para atualização." }
+                    };
+            }
+
+            var usuario = await _usuarioRepository.GetByIdAsync(estoque.UsuarioId);
+            if (usuario == null)
+                return new ValidationResultDto
+                {
+                    IsValid = false,
+                    Errors = new List<string> { "Usuário não encontrado para o estoque." }
+                };
+
+
+            return new ValidationResultDto
+            {
+                IsValid = errors.Count == 0,
+                Errors = errors
+            };
+        }
+
+        #endregion
+    }
+}

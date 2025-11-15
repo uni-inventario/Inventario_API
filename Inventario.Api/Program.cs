@@ -1,6 +1,7 @@
 using Inventario.Core.Data;
 using Microsoft.EntityFrameworkCore;
 using DotNetEnv;
+using Inventario.Core.Configurations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +19,8 @@ builder.Services.AddDbContext<ContextRepository>(options =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddAutoMapper(typeof(AutoMapperConfiguration));
 
 var app = builder.Build();
 
