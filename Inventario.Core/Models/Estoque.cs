@@ -8,6 +8,7 @@ namespace Inventario.Core.Models
         public DateTime UpdatedAt { get; set; }
         public DateTime? DeletedAt { get; set; }
         public long UsuarioId { get; set; }
+        public Usuario Usuario { get; set; }
         public List<Produto> Produtos { get; set; }
     }
 }
