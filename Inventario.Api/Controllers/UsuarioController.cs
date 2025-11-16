@@ -22,10 +22,10 @@ namespace Inventario.Api.Controllers
         {
             try
             {
-                if (UserId is null)
-                    return Unauthorized();
+                if (UsuarioId == null)
+                    return Unauthorized(new { Errors = new List<string> { "Usuário não autenticado." } });
 
-                var entry = await _usuarioHandler.GetByIdAsync(UserId);
+                var entry = await _usuarioHandler.GetByIdAsync(UsuarioId);
                 return Ok(entry);
             }
             catch (Exception ex)
@@ -54,10 +54,10 @@ namespace Inventario.Api.Controllers
         {
             try
             {
-                if (UserId is null)
-                    return Unauthorized();
+                if (UsuarioId == null)
+                    return Unauthorized(new { Errors = new List<string> { "Usuário não autenticado." } });
 
-                var entry = await _usuarioHandler.UpdateAsync(entity, UserId.Value);
+                var entry = await _usuarioHandler.UpdateAsync(entity, UsuarioId.Value);
                 return Ok(entry);
             }
             catch (Exception ex)
@@ -71,10 +71,10 @@ namespace Inventario.Api.Controllers
         {
             try
             {
-                if (UserId is null)
-                    return Unauthorized();
+                if (UsuarioId == null)
+                    return Unauthorized(new { Errors = new List<string> { "Usuário não autenticado." } });
 
-                var entry = await _usuarioHandler.DeleteAsync(UserId.Value);
+                var entry = await _usuarioHandler.DeleteAsync(UsuarioId.Value);
                 return Ok(entry);
             }
             catch (Exception ex)

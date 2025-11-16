@@ -37,10 +37,10 @@ namespace Inventario.Api.Controllers
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
-            if (UserId is null)
-                return Unauthorized();
+            if (UsuarioId == null)
+                return Unauthorized(new { Errors = new List<string> { "Usuário não autenticado." } });
 
-            await _authService.LogoutAsync(UserId.Value);
+            await _authService.LogoutAsync(UsuarioId.Value);
             return NoContent();
         }
     }

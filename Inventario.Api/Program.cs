@@ -41,7 +41,6 @@ var jwtConfig = new JwtConfiguration
         : 1440
 };
 
-
 if (string.IsNullOrWhiteSpace(jwtConfig.Key))
     throw new Exception("JWT Key não encontrada! Configure no .env");
 
@@ -106,6 +105,9 @@ builder.Services.AddAutoMapper(typeof(AutoMapperConfiguration));
 
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IUsuarioHandler, UsuarioHandler>();
+
+builder.Services.AddScoped<IEstoqueRepository, EstoqueRepository>();
+builder.Services.AddScoped<IEstoqueHandler, EstoqueHandler>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 

@@ -8,7 +8,7 @@ namespace Inventario.Core.Interfaces.Repositories
 {
     public interface IEstoqueRepository: IBaseRepository<Estoque>
     {
-        Task<Estoque> GetByIdWithProdutosAsync(long id);
-        Task<List<Estoque>> GetByUsuarioIdAsync(long usuarioId);
+        Task<Estoque> GetByIdAsync(long id, long usuarioId);
+        Task<List<Estoque>> GetAllAsync(long usuarioId);
     }
 }

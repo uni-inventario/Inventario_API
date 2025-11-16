@@ -6,7 +6,7 @@ namespace Inventario.Api.Controllers
     [ApiController]
     public abstract class BaseController : ControllerBase
     {
-        protected long? UserId
+        protected long? UsuarioId
         {
             get
             {
