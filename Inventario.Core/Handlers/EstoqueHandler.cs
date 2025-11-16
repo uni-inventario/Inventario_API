@@ -13,13 +13,16 @@ namespace Inventario.Core.Handlers
     {
         private readonly IUsuarioRepository _usuarioRepository;
         private readonly IEstoqueRepository _estoqueRepository;
+        private readonly IProdutoRepository _produtoRepository;
+        
         private readonly IMapper _mapper;
 
-        public EstoqueHandler(IMapper mapper, IUsuarioRepository usuarioRepository, IEstoqueRepository estoqueRepository)
+        public EstoqueHandler(IMapper mapper, IUsuarioRepository usuarioRepository, IEstoqueRepository estoqueRepository, IProdutoRepository produtoRepository)
         {
             _mapper = mapper;
             _usuarioRepository = usuarioRepository;
             _estoqueRepository = estoqueRepository;
+            _produtoRepository = produtoRepository;
         }
 
         public async Task<ApiResponse<List<EstoqueResponseDto>>> GetAllAsync(long usuarioId)
@@ -133,6 +136,17 @@ namespace Inventario.Core.Handlers
                 if (estoqueExistente == null || estoqueExistente.UsuarioId != usuarioId)
                     return new ApiResponse<EstoqueResponseDto>(new List<string>() { "Estoque não encontrado para o usuário." });
 
+                var produtos = await _produtoRepository.GetByEstoqueIdAsync(id, usuarioId);
+
+                if(produtos.Any())
+                {
+                    foreach(var produto in produtos)
+                    {
+                        produto.DeletedAt = DateTime.Now;
+                        produto.UpdatedAt = DateTime.Now;
+                    }
+                    await _produtoRepository.UpdateRangeAsync(produtos);
+                }
                 estoqueExistente.DeletedAt = DateTime.Now;
                 var deletedEstoque = await _estoqueRepository.UpdateAsync(estoqueExistente);
                 

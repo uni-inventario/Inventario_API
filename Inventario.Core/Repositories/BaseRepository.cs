@@ -39,5 +39,11 @@ namespace Inventario.Core.Repositories
             await _context.Set<T>().AddRangeAsync(entities);
             await _context.SaveChangesAsync();
         }
+
+        public async Task UpdateRangeAsync(List<T> entities)
+        {
+            _context.Set<T>().UpdateRange(entities);
+            await _context.SaveChangesAsync();
+        }
     }
 }

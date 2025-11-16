@@ -6,5 +6,6 @@ namespace Inventario.Core.Interfaces.Repositories
         Task<T> UpdateAsync(T entity);
         Task<T> GetByIdAsync(long id);
         Task AddRangeAsync(List<T> entities);
+        Task UpdateRangeAsync(List<T> entities);
     }
 }

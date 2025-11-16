@@ -109,6 +109,9 @@ builder.Services.AddScoped<IUsuarioHandler, UsuarioHandler>();
 builder.Services.AddScoped<IEstoqueRepository, EstoqueRepository>();
 builder.Services.AddScoped<IEstoqueHandler, EstoqueHandler>();
 
+builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
+builder.Services.AddScoped<IProdutoHandler, ProdutoHandler>();
+
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();

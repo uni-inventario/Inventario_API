@@ -12,7 +12,6 @@ namespace Inventario.Core.DTOs.Responses
         public string Descricao { get; set; }
         public decimal Preco { get; set; }
         public int Quantidade { get; set; }
-        public EstoqueResponseDto Estoque { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }

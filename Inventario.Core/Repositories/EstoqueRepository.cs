@@ -11,20 +11,43 @@ namespace Inventario.Core.Repositories
 
         public async Task<Estoque> GetByIdAsync(long id, long usuarioId)
         {
-            return _context.Estoques
+            var estoque = await _context.Estoques
                 .Include(e => e.Produtos)
-                .FirstOrDefault(e => e.Id == id
-                    && e.UsuarioId == usuarioId
-                    && e.DeletedAt == null);
+                .FirstOrDefaultAsync(e =>
+                    e.Id == id &&
+                    e.UsuarioId == usuarioId &&
+                    e.DeletedAt == null
+                );
+
+            if (estoque == null)
+                return null;
+
+            estoque.Produtos = estoque.Produtos
+                .Where(p => p.DeletedAt == null)
+                .ToList();
+
+            return estoque;
         }
 
         public async Task<List<Estoque>> GetAllAsync(long usuarioId)
         {
-            return _context.Estoques
-                .Include(x => x.Produtos)
-                .Where(e => e.UsuarioId == usuarioId
-                    && e.DeletedAt == null)
-                .ToList();
+            var estoques = await _context.Estoques
+                .Include(e => e.Produtos)
+                .Where(e =>
+                    e.UsuarioId == usuarioId &&
+                    e.DeletedAt == null
+                )
+                .ToListAsync();
+
+            foreach (var estoque in estoques)
+            {
+                estoque.Produtos = estoque.Produtos
+                    .Where(p => p.DeletedAt == null)
+                    .ToList();
+            }
+
+            return estoques;
         }
+
     }
 }
