@@ -8,7 +8,7 @@ namespace Inventario.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class UsuarioController : ControllerBase
+    public class UsuarioController : BaseController
     {
         private readonly IUsuarioHandler _usuarioHandler;
 
@@ -22,10 +22,10 @@ namespace Inventario.Api.Controllers
         {
             try
             {
-                var sub = User.FindFirstValue("id");
-                if (!long.TryParse(sub, out var id)) return Unauthorized();
+                if (UserId is null)
+                    return Unauthorized();
 
-                var entry = await _usuarioHandler.GetByIdAsync(id);
+                var entry = await _usuarioHandler.GetByIdAsync(UserId);
                 return Ok(entry);
             }
             catch (Exception ex)
@@ -54,10 +54,27 @@ namespace Inventario.Api.Controllers
         {
             try
             {
-                var sub = User.FindFirstValue("id");
-                if (!long.TryParse(sub, out var userId)) return Unauthorized();
+                if (UserId is null)
+                    return Unauthorized();
 
-                var entry = await _usuarioHandler.UpdateAsync(entity, userId);
+                var entry = await _usuarioHandler.UpdateAsync(entity, UserId.Value);
+                return Ok(entry);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> DeleteAsync()
+        {
+            try
+            {
+                if (UserId is null)
+                    return Unauthorized();
+
+                var entry = await _usuarioHandler.DeleteAsync(UserId.Value);
                 return Ok(entry);
             }
             catch (Exception ex)

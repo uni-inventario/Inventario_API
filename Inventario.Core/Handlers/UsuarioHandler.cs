@@ -99,6 +99,33 @@ namespace Inventario.Core.Handlers
         }
         #endregion
 
+        #region DELETE
+        public async Task<ApiResponse<UsuarioResponseDto>> DeleteAsync(long userId)
+        {
+            try
+            {
+                var usuarioExistente = await _usuarioRepository.GetByIdAsync(userId);
+
+                if (usuarioExistente is null)
+                    return new ApiResponse<UsuarioResponseDto>(new List<string> { "Usuário não encontrado para exclusão." });
+
+                usuarioExistente.DeletedAt = DateTime.Now;
+                usuarioExistente.UpdatedAt = DateTime.Now;
+                usuarioExistente.Token = null;
+
+                await _usuarioRepository.UpdateAsync(usuarioExistente);
+
+                var response = _mapper.Map<UsuarioResponseDto>(usuarioExistente);
+                response = null;
+                return new ApiResponse<UsuarioResponseDto>(response);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Erro ao excluir usuário: {ex.Message}", ex);
+            }
+        }
+        #endregion
+
         #region VALIDATION
         private async Task<ValidationResultDto> Validate(Usuario usuario, bool isUpdate = false)
         {
@@ -115,12 +142,40 @@ namespace Inventario.Core.Handlers
                     errors.Add("A senha é obrigatória e deve conter pelo menos 6 caracteres.");
             }
 
-            return new ValidationResultDto
+            if (errors.Count != 0)
             {
-                IsValid = errors.Count == 0,
-                Errors = errors
-            };
+                return new ValidationResultDto
+                {
+                    IsValid = false,
+                    Errors = errors
+                };
+            }
+
+            var usuarioExistente = await _usuarioRepository.GetByEmailAsync(usuario.Email);
+            if (usuarioExistente != null)
+            {
+                if (!isUpdate)
+                {
+                    return new ValidationResultDto
+                    {
+                        IsValid = false,
+                        Errors = new List<string> { "O e-mail informado já está em uso." }
+                    };
+                }
+
+                if (usuarioExistente.Id != usuario.Id)
+                {
+                    return new ValidationResultDto
+                    {
+                        IsValid = false,
+                        Errors = new List<string> { "O e-mail informado já está em uso por outro usuário." }
+                    };
+                }
+            }
+
+            return new ValidationResultDto { IsValid = true };
         }
+
         #endregion
     }
 }

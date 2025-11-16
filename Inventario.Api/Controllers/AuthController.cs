@@ -1,14 +1,15 @@
 using System.Security.Claims;
+using Inventario.Api.Controllers;
 using Inventario.Core.DTOs.Requests;
 using Inventario.Core.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Api.Controllers
+namespace Inventario.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuthController : ControllerBase
+    public class AuthController : BaseController
     {
         private readonly IAuthService _authService;
 
@@ -36,11 +37,10 @@ namespace Api.Controllers
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
-            var sub = User.FindFirstValue("id");
-            
-            if (!long.TryParse(sub, out var id)) return BadRequest();
+            if (UserId is null)
+                return Unauthorized();
 
-            await _authService.LogoutAsync(id);
+            await _authService.LogoutAsync(UserId.Value);
             return NoContent();
         }
     }
