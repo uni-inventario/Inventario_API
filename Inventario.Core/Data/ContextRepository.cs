@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Inventario.Core.Data
 {
-    public class ContextRepository: DbContext
+    public class ContextRepository : DbContext
     {
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<Estoque> Estoques { get; set; }
@@ -15,13 +15,14 @@ namespace Inventario.Core.Data
         {
             modelBuilder.Entity<Usuario>()
                 .HasMany(u => u.Estoques)
-                .WithOne()
+                .WithOne(e => e.Usuario)
                 .HasForeignKey(e => e.UsuarioId);
-                
+
             modelBuilder.Entity<Estoque>()
                 .HasMany(e => e.Produtos)
-                .WithOne()
+                .WithOne(p => p.Estoque)
                 .HasForeignKey(p => p.EstoqueId);
         }
+
     }
 }
