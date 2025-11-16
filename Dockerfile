@@ -11,8 +11,6 @@ COPY Inventario.Api/ ./Inventario.Api/
 COPY Inventario.Core/ ./Inventario.Core/
 COPY Inventario.Test/ ./Inventario.Test/
 
-COPY .env* /src/
-
 WORKDIR /src/Inventario.Api
 RUN dotnet publish -c Release -o /app
 
@@ -21,9 +19,8 @@ WORKDIR /app
 
 COPY --from=build /app .
 
-COPY .env* /app/
+EXPOSE 8080
 
-EXPOSE 5000
-ENV ASPNETCORE_URLS="http://+:5000"
+ENV ASPNETCORE_URLS=http://0.0.0.0:8080
 
 ENTRYPOINT ["dotnet", "Inventario.Api.dll"]
