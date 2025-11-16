@@ -29,7 +29,9 @@ namespace Inventario.Core.Repositories
 
         public async Task<T> GetByIdAsync(long id)
         {
-            return await _context.Set<T>().FindAsync(id);
+            return await _context.Set<T>()
+                .FirstOrDefaultAsync(e => EF.Property<long>(e, "Id") == id
+                && EF.Property<DateTime?>(e, "DeletedAt") == null);
         }
 
         public async Task AddRangeAsync(List<T> entities)
