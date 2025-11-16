@@ -10,4 +10,8 @@ services:
       - "5001:5001"
     environment:
       - CONNECTION_STRING=${CONNECTION_STRING}
+      - JWT_KEY=${JWT_KEY}
+      - JWT_ISSUER=${JWT_ISSUER}
+      - JWT_AUDIENCE=${JWT_AUDIENCE}
+      - JWT_EXPIRES=${JWT_EXPIRES}
       - ASPNETCORE_ENVIRONMENT=Development
