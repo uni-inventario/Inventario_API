@@ -6,8 +6,7 @@ services:
       dockerfile: Dockerfile
     image: inventario_api:latest
     ports:
-      - "5000:5000"
-      - "5001:5001"
+      - "8080:8080"
     environment:
       - CONNECTION_STRING=${CONNECTION_STRING}
       - JWT_KEY=${JWT_KEY}
