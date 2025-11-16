@@ -29,7 +29,7 @@ namespace Inventario.Api.Controllers
             }
             catch (Exception ex)
             {
-                return Unauthorized(ex.Message);
+                return BadRequest(ex.Message);
             }
         }
 
