@@ -9,6 +9,5 @@ namespace Inventario.Core.DTOs.Requests
     {
         public long? Id { get; set; }
         public string? Nome { get; set; }
-        public long? UsuarioId { get; set; }
     }
 }

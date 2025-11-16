@@ -11,7 +11,6 @@ namespace Inventario.Core.DTOs.Responses
         public string Nome { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
-        public UsuarioResponseDto Usuario { get; set; }
         public List<ProdutoResponseDto> Produtos { get; set; }
     }
 }

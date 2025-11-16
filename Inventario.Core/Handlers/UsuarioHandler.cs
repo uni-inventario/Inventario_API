@@ -69,14 +69,14 @@ namespace Inventario.Core.Handlers
         #endregion
 
         #region UPDATE
-        public async Task<ApiResponse<UsuarioResponseDto>> UpdateAsync(UsuarioRequestDto? entity, long userId)
+        public async Task<ApiResponse<UsuarioResponseDto>> UpdateAsync(UsuarioRequestDto? entity, long usuarioId)
         {
             try
             {
                 if (entity is null)
                     return new ApiResponse<UsuarioResponseDto>(new List<string> { "O Id do Usuário é obrigatório para atualização." });
 
-                var usuarioExistente = await _usuarioRepository.GetByIdAsync(userId);
+                var usuarioExistente = await _usuarioRepository.GetByIdAsync(usuarioId);
 
                 if (usuarioExistente is null)
                     return new ApiResponse<UsuarioResponseDto>(new List<string> { "Usuário não encontrado para atualização." });
@@ -100,11 +100,11 @@ namespace Inventario.Core.Handlers
         #endregion
 
         #region DELETE
-        public async Task<ApiResponse<UsuarioResponseDto>> DeleteAsync(long userId)
+        public async Task<ApiResponse<UsuarioResponseDto>> DeleteAsync(long usuarioId)
         {
             try
             {
-                var usuarioExistente = await _usuarioRepository.GetByIdAsync(userId);
+                var usuarioExistente = await _usuarioRepository.GetByIdAsync(usuarioId);
 
                 if (usuarioExistente is null)
                     return new ApiResponse<UsuarioResponseDto>(new List<string> { "Usuário não encontrado para exclusão." });

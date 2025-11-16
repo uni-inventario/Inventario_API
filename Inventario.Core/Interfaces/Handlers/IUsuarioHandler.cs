@@ -12,7 +12,7 @@ namespace Inventario.Core.Interfaces.Handlers
     {
         Task<ApiResponse<UsuarioResponseDto>> GetByIdAsync(long? id);
         Task<ApiResponse<UsuarioResponseDto>> AddAsync(UsuarioRequestDto? entity);
-        Task<ApiResponse<UsuarioResponseDto>> UpdateAsync(UsuarioRequestDto? entity, long userId);
-        Task<ApiResponse<UsuarioResponseDto>> DeleteAsync(long userId);
+        Task<ApiResponse<UsuarioResponseDto>> UpdateAsync(UsuarioRequestDto? entity, long usuarioId);
+        Task<ApiResponse<UsuarioResponseDto>> DeleteAsync(long usuarioId);
     }
 }

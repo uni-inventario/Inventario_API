@@ -10,5 +10,12 @@ namespace Inventario.Core.Models
         public long UsuarioId { get; set; }
         public Usuario Usuario { get; set; }
         public List<Produto> Produtos { get; set; }
+
+        public Estoque()
+        {
+            Produtos = new List<Produto>();
+            CreatedAt = DateTime.Now;
+            UpdatedAt = DateTime.Now;
+        }
     }
 }
