@@ -9,7 +9,7 @@ using Moq;
 using System.Collections.Generic; 
 using System.Linq; 
 using System.Threading.Tasks;
-using Xunit; // Adicionado Xunit para o [Fact] e [Theory]
+using Xunit;
 
 namespace Inventario.Test.Handlers
 {
@@ -23,8 +23,6 @@ namespace Inventario.Test.Handlers
 
         public EstoqueHandlerTest()
         {
-            // O IMapper real não é mais necessário na classe de teste, pois estamos mockando
-            // Removida a configuração do Mapper real para usar apenas o _mapperMock.Object
             _estoqueHandler = new EstoqueHandler(
                 _mapperMock.Object,
                 _usuarioRepositoryMock.Object,

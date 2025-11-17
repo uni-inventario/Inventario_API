@@ -8,6 +8,7 @@ using Inventario.Core.DTOs;
 using Inventario.Core.Validators;
 using Microsoft.AspNetCore.Identity;
 using Inventario.Core.Interfaces.Handlers;
+using FluentValidation.Results;
 
 namespace Inventario.Core.Handlers
 {
@@ -25,6 +26,7 @@ namespace Inventario.Core.Handlers
         }
 
         #region GET
+        //feito
         public async Task<ApiResponse<UsuarioResponseDto>> GetByIdAsync(long? id)
         {
             try
@@ -44,6 +46,7 @@ namespace Inventario.Core.Handlers
         #endregion
 
         #region CREATE
+        //feito
         public async Task<ApiResponse<UsuarioResponseDto>> AddAsync(UsuarioRequestDto? entity)
         {
             try
@@ -69,6 +72,7 @@ namespace Inventario.Core.Handlers
         #endregion
 
         #region UPDATE
+        //feito
         public async Task<ApiResponse<UsuarioResponseDto>> UpdateAsync(UsuarioRequestDto? entity, long usuarioId)
         {
             try
@@ -177,5 +181,6 @@ namespace Inventario.Core.Handlers
         }
 
         #endregion
+        
     }
 }
