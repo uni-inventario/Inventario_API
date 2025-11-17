@@ -3,11 +3,11 @@ using Inventario.Core.Configurations;
 using Inventario.Core.DTOs.Requests;
 using Inventario.Core.DTOs.Responses;
 using Inventario.Core.Handlers;
-using Inventario.Core.Interfaces.Handlers; // Adicionado para o IUsuarioHandler
+using Inventario.Core.Interfaces.Handlers; 
 using Inventario.Core.Interfaces.Repositories;
 using Inventario.Core.Models;
 using Moq;
-using System; // Necessário para InvalidOperationException
+using System; 
 using System.Collections.Generic; 
 using System.Linq; 
 using System.Threading.Tasks;
@@ -23,11 +23,8 @@ namespace Inventario.Test.Handlers
         private readonly Mock<IUsuarioRepository> _usuarioRepositoryMock = new Mock<IUsuarioRepository>();
         private readonly Mock<IMapper> _mapperMock = new Mock<IMapper>();
 
-        // É crucial que o construtor do teste use os Mocks para inicializar o Handler
         public UsuarioHandlerTest()
         {
-            // Assumindo que o construtor do seu UsuarioHandler é: 
-            // public UsuarioHandler(IMapper mapper, IUsuarioRepository usuarioRepository)
             _usuarioHandler = new UsuarioHandler(_mapperMock.Object, _usuarioRepositoryMock.Object);
         }
 
@@ -101,7 +98,6 @@ namespace Inventario.Test.Handlers
 
             await Assert.ThrowsAsync<System.Exception>(() => _usuarioHandler.GetByIdAsync(usuarioId));
 
-            // Verifica que nenhuma chamada ao repositório ou mapper ocorreu
             _usuarioRepositoryMock.Verify(r => r.GetByIdAsync(It.IsAny<long>()), Times.Never);
             _mapperMock.Verify(m => m.Map<UsuarioResponseDto>(It.IsAny<Usuario>()), Times.Never);
         }
@@ -119,11 +115,9 @@ namespace Inventario.Test.Handlers
             _mapperMock.Setup(m => m.Map<Usuario>(requestDto))
                 .Returns(usuarioModelPreHash);
 
-            // Retorna o Model criado (já com o ID e o Hash)
             _usuarioRepositoryMock.Setup(r => r.AddAsync(It.IsAny<Usuario>()))
                 .ReturnsAsync(usuarioModelPosHash);
 
-            //Mapeamento do Model de Retorno para o Response DTO
             _mapperMock.Setup(m => m.Map<UsuarioResponseDto>(usuarioModelPosHash))
                 .Returns(responseDto);
 
@@ -157,7 +151,6 @@ namespace Inventario.Test.Handlers
             _usuarioRepositoryMock.Verify(r => r.AddAsync(It.IsAny<Usuario>()), Times.Never);
         }
 
-        //teste de validade Ver com anderson
 
         #endregion
 
@@ -245,7 +238,6 @@ namespace Inventario.Test.Handlers
         [Fact]
         public async Task UpdateAsync_DeveLancarExcecao_EmCasoDeErroNoRepositorio()
         {
-            // Arrange
             long usuarioId = 1;
             var requestDto = GetFakeUsuarioRequestDto();
             var exceptionMessage = "Simulação de falha de conexão com o banco de dados.";
@@ -262,7 +254,6 @@ namespace Inventario.Test.Handlers
             _usuarioRepositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Usuario>()), Times.Never);
         }
 
-        // validate falar com anderson
         
         #endregion
         #region Testes para DeleteAsync
