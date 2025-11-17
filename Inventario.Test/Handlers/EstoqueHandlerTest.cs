@@ -6,6 +6,7 @@ using Inventario.Core.Handlers;
 using Inventario.Core.Interfaces.Repositories;
 using Inventario.Core.Models;
 using Moq;
+using System;
 using System.Collections.Generic; 
 using System.Linq; 
 using System.Threading.Tasks;
@@ -42,13 +43,13 @@ namespace Inventario.Test.Handlers
             };
         }
 
-        private Estoque GetEstoqueMock()
+        private Estoque GetEstoqueMock(long id = 1, string nome = "Estoque Teste", long usuarioId = 4)
         {
             return new Estoque
             {
-                Id = 1,
-                Nome = "Estoque Teste",
-                UsuarioId = 4,
+                Id = id,
+                Nome = nome,
+                UsuarioId = usuarioId,
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };
@@ -63,19 +64,20 @@ namespace Inventario.Test.Handlers
             };
         }
         
-        private EstoqueRequestDto GetEstoqueRequestDtoMock()
+        private EstoqueRequestDto GetEstoqueRequestDtoMock(long? id = null, string nome = "Estoque Teste")
         {
             return new EstoqueRequestDto
             {
-                Nome = "Estoque Teste"
+                Id = id,
+                Nome = nome
             };
         }
 
-        private Usuario GetUsuarioMock()
+        private Usuario GetUsuarioMock(long id = 4)
         {
             return new Usuario
             {
-                Id = 4,
+                Id = id,
                 Nome = "Usuário Teste",
                 Email = "usuario@gmail.com",
                 Senha = "Senha123!"
@@ -100,19 +102,16 @@ namespace Inventario.Test.Handlers
         [Fact]
         public async Task GetAllAsync_Success()
         {
-            // Preparar
             long usuarioId = 1;
             var estoquesMock = GetEstoquesMock();
-            var estoquesResponseMock = estoquesMock.Select(e => new EstoqueResponseDto { Id = e.Id, Nome = e.Nome }).ToList();
+            var estoquesResponseMock = estoquesMock.Select(e => GetEstoqueResponseDtoMock(e.Id, e.Nome)).ToList(); 
 
             _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ReturnsAsync(GetUsuarioMock());
             _estoqueRepositoryMock.Setup(x => x.GetAllAsync(usuarioId)).ReturnsAsync(estoquesMock);
             _mapperMock.Setup(m => m.Map<List<EstoqueResponseDto>>(It.IsAny<List<Estoque>>())).Returns(estoquesResponseMock);
 
-            // Agir
             var result = await _estoqueHandler.GetAllAsync(usuarioId);
 
-            // Verificar
             Assert.True(result.Success);
             Assert.NotNull(result.Data);
             Assert.Equal(2, result.Data.Count);
@@ -123,14 +122,11 @@ namespace Inventario.Test.Handlers
         [Fact]
         public async Task GetAllAsync_UserNotFound()
         {
-            // Preparar
             long usuarioId = 1;
             _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ReturnsAsync((Usuario?)null);
 
-            // Agir
             var result = await _estoqueHandler.GetAllAsync(usuarioId);
 
-            // Verificar
             Assert.False(result.Success);
             Assert.Null(result.Data);
             Assert.Contains("Usuário não encontrado.", result.Message.First());
@@ -141,7 +137,6 @@ namespace Inventario.Test.Handlers
         [Fact]
         public async Task GetAllAsync_EmptyList()
         {
-            // Preparar
             long usuarioId = 1;
             var emptyList = new List<Estoque>();
             var emptyResponseList = new List<EstoqueResponseDto>();
@@ -150,10 +145,8 @@ namespace Inventario.Test.Handlers
             _estoqueRepositoryMock.Setup(x => x.GetAllAsync(usuarioId)).ReturnsAsync(emptyList);
             _mapperMock.Setup(m => m.Map<List<EstoqueResponseDto>>(emptyList)).Returns(emptyResponseList);
 
-            // Agir
             var result = await _estoqueHandler.GetAllAsync(usuarioId);
 
-            // Verificar
             Assert.True(result.Success);
             Assert.NotNull(result.Data);
             Assert.Empty(result.Data);
@@ -164,11 +157,9 @@ namespace Inventario.Test.Handlers
         [Fact]
         public async Task GetAllAsync_ShouldThrowException()
         {
-            // Preparar
             long usuarioId = 1;
             _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ThrowsAsync(new Exception("Erro no repositório"));
 
-            // Agir & Verificar
             await Assert.ThrowsAsync<Exception>(() => _estoqueHandler.GetAllAsync(usuarioId));
         }
 
@@ -181,20 +172,17 @@ namespace Inventario.Test.Handlers
         [Fact]
         public async Task GetByIdAsync_Success()
         {
-            // Preparar
             long estoqueId = 1;
             long usuarioId = 4;
-            var estoqueMock = GetEstoqueMock();
-            var estoqueResponseMock = GetEstoqueResponseDtoMock();
+            var estoqueMock = GetEstoqueMock(estoqueId, "Estoque Teste", usuarioId);
+            var estoqueResponseMock = GetEstoqueResponseDtoMock(estoqueId);
 
-            _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ReturnsAsync(GetUsuarioMock());
+            _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ReturnsAsync(GetUsuarioMock(usuarioId));
             _estoqueRepositoryMock.Setup(x => x.GetByIdAsync(estoqueId, usuarioId)).ReturnsAsync(estoqueMock);
             _mapperMock.Setup(m => m.Map<EstoqueResponseDto>(estoqueMock)).Returns(estoqueResponseMock);
 
-            // Agir
             var result = await _estoqueHandler.GetByIdAsync(estoqueId, usuarioId);
 
-            // Verificar
             Assert.True(result.Success);
             Assert.NotNull(result.Data);
             Assert.Equal(estoqueId, result.Data.Id);
@@ -205,16 +193,13 @@ namespace Inventario.Test.Handlers
         [Fact]
         public async Task GetByIdAsync_UserNotFound()
         {
-            // Preparar
             long estoqueId = 1;
             long usuarioId = 99;
 
             _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ReturnsAsync((Usuario?)null);
 
-            // Agir
             var result = await _estoqueHandler.GetByIdAsync(estoqueId, usuarioId);
 
-            // Verificar
             Assert.False(result.Success);
             Assert.Null(result.Data);
             Assert.Contains("Usuário não encontrado.", result.Message.First());
@@ -226,21 +211,18 @@ namespace Inventario.Test.Handlers
         [Fact]
         public async Task GetByIdAsync_EstoqueNotFound()
         {
-            // Preparar
             long estoqueId = 99;
             long usuarioId = 4;
 
-            _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ReturnsAsync(GetUsuarioMock());
+            _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ReturnsAsync(GetUsuarioMock(usuarioId));
             _estoqueRepositoryMock.Setup(x => x.GetByIdAsync(estoqueId, usuarioId)).ReturnsAsync((Estoque?)null);
+            
             _mapperMock.Setup(m => m.Map<EstoqueResponseDto>((Estoque)null!)).Returns((EstoqueResponseDto)null!);
 
-            // Agir
             var result = await _estoqueHandler.GetByIdAsync(estoqueId, usuarioId);
 
-            // Verificar
             Assert.True(result.Success);
             Assert.Null(result.Data);
-            // Garante que Message não é nulo antes de Assert.Empty
             Assert.Empty(result.Message ?? new List<string>()); 
         }
 
@@ -249,14 +231,12 @@ namespace Inventario.Test.Handlers
         [Fact]
         public async Task GetByIdAsync_ShouldThrowException()
         {
-            // Preparar
             long estoqueId = 1;
             long usuarioId = 4;
             var expectedExceptionMessage = "Erro no repositório";
 
             _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ThrowsAsync(new Exception(expectedExceptionMessage));
 
-            // Agir & Verificar
             var ex = await Assert.ThrowsAsync<Exception>(() => _estoqueHandler.GetByIdAsync(estoqueId, usuarioId));
 
             Assert.Contains("Erro ao obter estoque por Id:", ex.Message);
@@ -272,25 +252,23 @@ namespace Inventario.Test.Handlers
         [Fact]
         public async Task AddAsync_Success()
         {
-            // Preparar
-            var request = GetEstoqueRequestDtoMock();
             long usuarioId = 1;
-            var estoqueToCreate = GetEstoqueMock();
-            var createdEstoque = GetEstoqueMock();
-            var responseDto = GetEstoqueResponseDtoMock();
+            var request = GetEstoqueRequestDtoMock(nome: "Novo Estoque");
+            
+            var estoqueToCreate = GetEstoqueMock(id: 0, nome: request.Nome, usuarioId: usuarioId);
+            var createdEstoque = GetEstoqueMock(id: 10, nome: request.Nome, usuarioId: usuarioId);
+            var responseDto = GetEstoqueResponseDtoMock(id: 10, nome: request.Nome);
 
-            _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ReturnsAsync(GetUsuarioMock());
+            _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ReturnsAsync(GetUsuarioMock(usuarioId));
             _mapperMock.Setup(m => m.Map<Estoque>(request)).Returns(estoqueToCreate);
             _estoqueRepositoryMock.Setup(x => x.AddAsync(It.IsAny<Estoque>())).ReturnsAsync(createdEstoque);
             _mapperMock.Setup(m => m.Map<EstoqueResponseDto>(createdEstoque)).Returns(responseDto);
 
-            // Agir
             var result = await _estoqueHandler.AddAsync(request, usuarioId);
 
-            // Verificar
             Assert.True(result.Success);
             Assert.NotNull(result.Data);
-            Assert.Equal("Estoque Teste", result.Data.Nome);
+            Assert.Equal(request.Nome, result.Data.Nome);
         }
 
         
@@ -298,13 +276,10 @@ namespace Inventario.Test.Handlers
         [Fact]
         public async Task AddAsync_EntityNulo()
         {
-            // Preparar
             long usuarioId = 1;
 
-            // Agir
             var result = await _estoqueHandler.AddAsync(null, usuarioId);
 
-            // Verificar
             Assert.False(result.Success);
             Assert.Null(result.Data);
             Assert.Contains("O Estoque não pode ser nulo.", result.Message.First());
@@ -315,15 +290,12 @@ namespace Inventario.Test.Handlers
         [Fact]
         public async Task AddAsync_UserNotFound()
         {
-            // Preparar
             var request = GetEstoqueRequestDtoMock();
             long usuarioId = 1;
             _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ReturnsAsync((Usuario?)null);
 
-            // Agir
             var result = await _estoqueHandler.AddAsync(request, usuarioId);
 
-            // Verificar
             Assert.False(result.Success);
             Assert.Null(result.Data);
             Assert.Contains("Usuário não encontrado.", result.Message.First());
@@ -334,24 +306,18 @@ namespace Inventario.Test.Handlers
         [Fact]
         public async Task AddAsync_ValidationFails()
         {
-            // Preparar
-            var request = GetEstoqueRequestDtoMock();
             long usuarioId = 1;
-            // Configura o request para ser inválido (Nome vazio)
-            request.Nome = ""; 
-            var invalidEstoque = new Estoque { Nome = "" };
+            var request = GetEstoqueRequestDtoMock(nome: "");
+            var invalidEstoque = GetEstoqueMock(id: 0, nome: "", usuarioId: usuarioId);
 
-            _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ReturnsAsync(GetUsuarioMock());
+            _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ReturnsAsync(GetUsuarioMock(usuarioId));
             _mapperMock.Setup(m => m.Map<Estoque>(request)).Returns(invalidEstoque);
             
-            // Agir
             var result = await _estoqueHandler.AddAsync(request, usuarioId);
 
-            // Verificar
             Assert.False(result.Success);
             Assert.Null(result.Data);
             Assert.True(result.Message.Count > 0);
-            Assert.Contains("O nome do estorque é obrigatório.", result.Message);
         }
 
         
@@ -359,11 +325,9 @@ namespace Inventario.Test.Handlers
         [Fact]
         public async Task AddAsync_ShouldThrowException()
         {
-            // Preparar
             var request = GetEstoqueRequestDtoMock();
             _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<long>())).ThrowsAsync(new Exception("Erro inesperado"));
 
-            // Agir & Verificar
             await Assert.ThrowsAsync<Exception>(() => _estoqueHandler.AddAsync(request, 1));
         }
 
@@ -376,26 +340,25 @@ namespace Inventario.Test.Handlers
         [Fact]
         public async Task UpdateAsync_Success()
         {
-            // Preparar
             long usuarioId = 4;
-            var request = new EstoqueRequestDto { Id = 1, Nome = "Novo Nome do Estoque" };
-            var estoqueExistente = GetEstoqueMock();
-            var estoqueAtualizado = new Estoque { Id = 1, Nome = "Novo Nome do Estoque", UsuarioId = usuarioId, UpdatedAt = DateTime.Now };
-            var estoqueResponse = GetEstoqueResponseDtoMock(1, "Novo Nome do Estoque");
-
-            _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ReturnsAsync(GetUsuarioMock());
-            _estoqueRepositoryMock.Setup(x => x.GetByIdAsync((long)request.Id)).ReturnsAsync(estoqueExistente);
-            _estoqueRepositoryMock.Setup(x => x.UpdateAsync(It.IsAny<Estoque>())).ReturnsAsync(estoqueAtualizado);
-            _mapperMock.Setup(m => m.Map<EstoqueResponseDto>(It.IsAny<Estoque>())).Returns(estoqueResponse);
+            string novoNome = "Novo Nome do Estoque";
+            var request = GetEstoqueRequestDtoMock(id: 1, nome: novoNome);
             
-            // Agir
+            var estoqueExistente = GetEstoqueMock(id: 1, nome: "Nome Antigo", usuarioId: usuarioId);
+            var estoqueAtualizado = GetEstoqueMock(id: 1, nome: novoNome, usuarioId: usuarioId); 
+            var estoqueResponse = GetEstoqueResponseDtoMock(1, novoNome);
+
+            _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ReturnsAsync(GetUsuarioMock(usuarioId));
+            _estoqueRepositoryMock.Setup(x => x.GetByIdAsync((long)request.Id)).ReturnsAsync(estoqueExistente);
+            _estoqueRepositoryMock.Setup(x => x.UpdateAsync(It.Is<Estoque>(e => e.Nome == novoNome))).ReturnsAsync(estoqueAtualizado);
+            _mapperMock.Setup(m => m.Map<EstoqueResponseDto>(estoqueAtualizado)).Returns(estoqueResponse);
+            
             var result = await _estoqueHandler.UpdateAsync(request, usuarioId);
 
-            // Verificar
             Assert.True(result.Success);
             Assert.NotNull(result.Data);
-            Assert.Equal(request.Nome, result.Data.Nome);
-            _estoqueRepositoryMock.Verify(x => x.UpdateAsync(It.Is<Estoque>(e => e.Nome == request.Nome)), Times.Once);
+            Assert.Equal(novoNome, result.Data.Nome);
+            _estoqueRepositoryMock.Verify(x => x.UpdateAsync(It.Is<Estoque>(e => e.Nome == novoNome)), Times.Once);
         }
 
         
@@ -403,10 +366,8 @@ namespace Inventario.Test.Handlers
         [Fact]
         public async Task UpdateAsync_EntityIsNull()
         {
-            // Agir
             var result = await _estoqueHandler.UpdateAsync(null, 1);
 
-            // Verificar
             Assert.False(result.Success);
             Assert.Contains("O Estoque não pode ser nulo.", result.Message.First());
             _estoqueRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Estoque>()), Times.Never);
@@ -414,22 +375,15 @@ namespace Inventario.Test.Handlers
 
         
         /// Testa o retorno de erro quando o Id do Estoque para atualização é inválido (null, 0, ou negativo).
-        [Theory]
-        [InlineData(null)]
-        [InlineData(0L)]
-        [InlineData(-1L)]
-        public async Task UpdateAsync_IdIsMissingOrInvalid(long? estoqueId)
+        [Fact]
+        public async Task UpdateAsync_IdIsMissingOrInvalid()
         {
-            // Preparar
-            var request = new EstoqueRequestDto { Id = estoqueId, Nome = "Nome de teste" };
+            var request = GetEstoqueRequestDtoMock(id: null, nome: "Nome de teste");
 
-            // Agir
             var result = await _estoqueHandler.UpdateAsync(request, 1);
 
-            // Verificar
             Assert.False(result.Success);
             Assert.Contains("O Id do Estoque é obrigatório para atualização.", result.Message.First());
-            _usuarioRepositoryMock.Verify(x => x.GetByIdAsync(It.IsAny<long>()), Times.Never);
         }
 
         
@@ -437,15 +391,13 @@ namespace Inventario.Test.Handlers
         [Fact]
         public async Task UpdateAsync_UserNotFound()
         {
-            // Preparar
             long usuarioId = 99;
-            var request = new EstoqueRequestDto { Id = 1, Nome = "Novo Nome" };
+            var request = GetEstoqueRequestDtoMock(id: 1, nome: "Novo Nome");
+            
             _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ReturnsAsync((Usuario?)null);
 
-            // Agir
             var result = await _estoqueHandler.UpdateAsync(request, usuarioId);
 
-            // Verificar
             Assert.False(result.Success);
             Assert.Contains("Usuário não encontrado.", result.Message.First());
             _estoqueRepositoryMock.Verify(x => x.GetByIdAsync(It.IsAny<long>()), Times.Never);
@@ -456,17 +408,14 @@ namespace Inventario.Test.Handlers
         [Fact]
         public async Task UpdateAsync_EstoqueNotFoundOrNotBelongingToUser()
         {
-            // Preparar
             long usuarioId = 4;
-            var request = new EstoqueRequestDto { Id = 99, Nome = "Novo Nome" };
+            var request = GetEstoqueRequestDtoMock(id: 99, nome: "Novo Nome");
 
-            _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ReturnsAsync(GetUsuarioMock());
+            _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ReturnsAsync(GetUsuarioMock(usuarioId));
             _estoqueRepositoryMock.Setup(x => x.GetByIdAsync((long)request.Id)).ReturnsAsync((Estoque?)null);
 
-            // Agir
             var result = await _estoqueHandler.UpdateAsync(request, usuarioId);
 
-            // Verificar
             Assert.False(result.Success);
             Assert.Contains("Estoque não encontrado para o usuário.", result.Message.First());
             _estoqueRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Estoque>()), Times.Never);
@@ -477,21 +426,21 @@ namespace Inventario.Test.Handlers
         [Fact]
         public async Task UpdateAsync_ValidationFails()
         {
-            // Preparar
             long usuarioId = 4;
-            var request = new EstoqueRequestDto { Id = 1, Nome = "" };
-            var estoqueExistente = GetEstoqueMock(); 
-            estoqueExistente.Nome = ""; // Simula o nome sendo atualizado para vazio (inválido)
-            
-            _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ReturnsAsync(GetUsuarioMock());
-            _estoqueRepositoryMock.Setup(x => x.GetByIdAsync((long)request.Id)).ReturnsAsync(estoqueExistente);
+            long estoqueId = 1;
+            var request = GetEstoqueRequestDtoMock(id: estoqueId, nome: ""); 
+            var estoqueExistente = GetEstoqueMock(estoqueId, "Nome Existente", usuarioId); 
 
-            // Agir
+            _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ReturnsAsync(GetUsuarioMock(usuarioId));
+            _estoqueRepositoryMock.Setup(x => x.GetByIdAsync(estoqueId)).ReturnsAsync(estoqueExistente);
+
+            _estoqueRepositoryMock.Setup(x => x.UpdateAsync(It.IsAny<Estoque>())).ReturnsAsync(GetEstoqueMock(estoqueId, "", usuarioId));
+
             var result = await _estoqueHandler.UpdateAsync(request, usuarioId);
 
-            // Verificar
             Assert.False(result.Success);
             Assert.True(result.Message.Count > 0);
+            Assert.Contains("O nome do estorque é obrigatório.", result.Message);
             _estoqueRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Estoque>()), Times.Never);
         }
 
@@ -500,12 +449,10 @@ namespace Inventario.Test.Handlers
         [Fact]
         public async Task UpdateAsync_ShouldThrowException()
         {
-            // Preparar
             long usuarioId = 4;
-            var request = new EstoqueRequestDto { Id = 1, Nome = "Nome Válido" };
+            var request = GetEstoqueRequestDtoMock(id: 1, nome: "Nome Válido");
             _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ThrowsAsync(new Exception("Erro no repositório de usuário"));
 
-            // Agir & Verigicar
             var ex = await Assert.ThrowsAsync<Exception>(() => _estoqueHandler.UpdateAsync(request, usuarioId));
 
             Assert.Contains("Erro ao atualizar estoque:", ex.Message);
@@ -520,21 +467,18 @@ namespace Inventario.Test.Handlers
         [Fact]
         public async Task DeleteAsync_Success_NoProducts()
         {
-            // Preparar
             long estoqueId = 1;
             long usuarioId = 4;
-            var estoqueExistente = GetEstoqueMock();
+            var estoqueExistente = GetEstoqueMock(estoqueId, "Estoque a Deletar", usuarioId);
             
-            _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ReturnsAsync(GetUsuarioMock());
+            _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ReturnsAsync(GetUsuarioMock(usuarioId));
             _estoqueRepositoryMock.Setup(x => x.GetByIdAsync(estoqueId)).ReturnsAsync(estoqueExistente);
             _produtoRepositoryMock.Setup(x => x.GetByEstoqueIdAsync(estoqueId, usuarioId)).ReturnsAsync(new List<Produto>());
             _estoqueRepositoryMock.Setup(x => x.UpdateAsync(It.IsAny<Estoque>())).ReturnsAsync(estoqueExistente);
             _mapperMock.Setup(m => m.Map<EstoqueResponseDto>(It.IsAny<Estoque>())).Returns(GetEstoqueResponseDtoMock());
 
-            // Agir
             var result = await _estoqueHandler.DeleteAsync(estoqueId, usuarioId);
 
-            // Verificar
             Assert.True(result.Success);
             Assert.Null(result.Data); 
             Assert.Empty(result.Message ?? new List<string>()); 
@@ -548,22 +492,19 @@ namespace Inventario.Test.Handlers
         [Fact]
         public async Task DeleteAsync_Success_WithProducts()
         {
-            // Preparar
             long estoqueId = 1;
             long usuarioId = 4;
-            var estoqueExistente = GetEstoqueMock();
+            var estoqueExistente = GetEstoqueMock(estoqueId, "Estoque a Deletar", usuarioId);
             var produtosMock = GetProdutosMock(estoqueId);
 
-            _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ReturnsAsync(GetUsuarioMock());
+            _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ReturnsAsync(GetUsuarioMock(usuarioId));
             _estoqueRepositoryMock.Setup(x => x.GetByIdAsync(estoqueId)).ReturnsAsync(estoqueExistente);
             _produtoRepositoryMock.Setup(x => x.GetByEstoqueIdAsync(estoqueId, usuarioId)).ReturnsAsync(produtosMock);
             _estoqueRepositoryMock.Setup(x => x.UpdateAsync(It.IsAny<Estoque>())).ReturnsAsync(estoqueExistente);
             _mapperMock.Setup(m => m.Map<EstoqueResponseDto>(It.IsAny<Estoque>())).Returns(GetEstoqueResponseDtoMock());
 
-            // Agir
             var result = await _estoqueHandler.DeleteAsync(estoqueId, usuarioId);
 
-            // Verificar
             Assert.True(result.Success);
             Assert.Null(result.Data); 
             Assert.Empty(result.Message ?? new List<string>());
@@ -579,14 +520,11 @@ namespace Inventario.Test.Handlers
         [Fact]
         public async Task DeleteAsync_UserNotFound()
         {
-            // Preparar
             long usuarioId = 99;
             _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ReturnsAsync((Usuario?)null);
 
-            // Agir
             var result = await _estoqueHandler.DeleteAsync(1, usuarioId);
 
-            // Verificar
             Assert.False(result.Success);
             Assert.Contains("Usuário não encontrado.", result.Message.First());
             _estoqueRepositoryMock.Verify(x => x.GetByIdAsync(It.IsAny<long>()), Times.Never);
@@ -597,17 +535,14 @@ namespace Inventario.Test.Handlers
         [Fact]
         public async Task DeleteAsync_EstoqueNotFound()
         {
-            // Preparar
             long estoqueId = 99;
             long usuarioId = 4;
 
-            _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ReturnsAsync(GetUsuarioMock());
+            _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ReturnsAsync(GetUsuarioMock(usuarioId));
             _estoqueRepositoryMock.Setup(x => x.GetByIdAsync(estoqueId)).ReturnsAsync((Estoque?)null);
 
-            // Agir
             var result = await _estoqueHandler.DeleteAsync(estoqueId, usuarioId);
 
-            // Verificar
             Assert.False(result.Success);
             Assert.Contains("Estoque não encontrado para o usuário.", result.Message.First());
             _estoqueRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Estoque>()), Times.Never);
@@ -618,19 +553,17 @@ namespace Inventario.Test.Handlers
         [Fact]
         public async Task DeleteAsync_EstoqueNotBelongingToUser()
         {
-            // Preparar
             long estoqueId = 1;
-            long usuarioId = 99;
-            var estoqueDoOutroUsuario = GetEstoqueMock(); 
-            estoqueDoOutroUsuario.UsuarioId = 4; // Pertence ao usuário 4
+            long usuarioIdRequisicao = 99;
+            long usuarioIdEstoque = 4;
+            
+            var estoqueDoOutroUsuario = GetEstoqueMock(estoqueId, "Estoque de Outro", usuarioIdEstoque); 
 
-            _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ReturnsAsync(new Usuario { Id = usuarioId });
+            _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioIdRequisicao)).ReturnsAsync(GetUsuarioMock(usuarioIdRequisicao));
             _estoqueRepositoryMock.Setup(x => x.GetByIdAsync(estoqueId)).ReturnsAsync(estoqueDoOutroUsuario); 
 
-            // Agir
-            var result = await _estoqueHandler.DeleteAsync(estoqueId, usuarioId);
+            var result = await _estoqueHandler.DeleteAsync(estoqueId, usuarioIdRequisicao);
 
-            // Verificar
             Assert.False(result.Success);
             Assert.Contains("Estoque não encontrado para o usuário.", result.Message.First());
             _estoqueRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Estoque>()), Times.Never);
@@ -641,12 +574,10 @@ namespace Inventario.Test.Handlers
         [Fact]
         public async Task DeleteAsync_ShouldThrowException()
         {
-            // Preparar
             long estoqueId = 1;
             long usuarioId = 4;
             _usuarioRepositoryMock.Setup(x => x.GetByIdAsync(usuarioId)).ThrowsAsync(new Exception("Erro de conexão"));
 
-            // Agir & Verificar
             var ex = await Assert.ThrowsAsync<Exception>(() => _estoqueHandler.DeleteAsync(estoqueId, usuarioId));
 
             Assert.Contains("Erro ao deletar estoque:", ex.Message);

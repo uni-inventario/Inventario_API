@@ -3,13 +3,13 @@ using Inventario.Core.Configurations;
 using Inventario.Core.DTOs.Requests;
 using Inventario.Core.DTOs.Responses;
 using Inventario.Core.Handlers;
-using Inventario.Core.Interfaces.Handlers; // Adicionado para o IUsuarioHandler
+using Inventario.Core.Interfaces.Handlers;
 using Inventario.Core.Interfaces.Repositories;
 using Inventario.Core.Models;
 using Moq;
-using System; // Necessário para InvalidOperationException
-using System.Collections.Generic; 
-using System.Linq; 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using FluentValidation.Results;
@@ -23,35 +23,32 @@ namespace Inventario.Test.Handlers
         private readonly Mock<IUsuarioRepository> _usuarioRepositoryMock = new Mock<IUsuarioRepository>();
         private readonly Mock<IMapper> _mapperMock = new Mock<IMapper>();
 
-        // É crucial que o construtor do teste use os Mocks para inicializar o Handler
         public UsuarioHandlerTest()
         {
-            // Assumindo que o construtor do seu UsuarioHandler é: 
-            // public UsuarioHandler(IMapper mapper, IUsuarioRepository usuarioRepository)
             _usuarioHandler = new UsuarioHandler(_mapperMock.Object, _usuarioRepositoryMock.Object);
         }
 
         #region MOCKS AUXILIARES
-        
+
             private UsuarioRequestDto GetFakeUsuarioRequestDto(
-                string nome = "Novo Usuário", 
-                string email = "novo@exemplo.com", 
+                string nome = "Novo Usuário",
+                string email = "novo@exemplo.com",
                 string senha = "SenhaForte123") =>
                 new UsuarioRequestDto { Nome = nome, Email = email, Senha = senha };
-            
+
             private Usuario GetFakeUsuarioModel(long id, string nome = "Teste", string email = "teste@exemplo.com") =>
                 new Usuario { Id = id, Nome = nome, Email = email };
 
             private UsuarioResponseDto GetFakeUsuarioResponseDto(
-                long id, 
-                string nome = "Teste", 
+                long id,
+                string nome = "Teste",
                 string email = "teste@exemplo.com") =>
                 new UsuarioResponseDto { Id = id, Nome = nome, Email = email };
 
         #endregion
 
         #region testes para GetByIdAsync
-        
+
         // 1. Sucesso: O usuário é encontrado e mapeado corretamente.
         [Fact]
         public async Task GetByIdAsync_DeveRetornarUsuario_QuandoEncontrado()
@@ -101,7 +98,6 @@ namespace Inventario.Test.Handlers
 
             await Assert.ThrowsAsync<System.Exception>(() => _usuarioHandler.GetByIdAsync(usuarioId));
 
-            // Verifica que nenhuma chamada ao repositório ou mapper ocorreu
             _usuarioRepositoryMock.Verify(r => r.GetByIdAsync(It.IsAny<long>()), Times.Never);
             _mapperMock.Verify(m => m.Map<UsuarioResponseDto>(It.IsAny<Usuario>()), Times.Never);
         }
@@ -115,15 +111,13 @@ namespace Inventario.Test.Handlers
             var usuarioModelPreHash = new Usuario { Nome = requestDto.Nome, Email = requestDto.Email, Senha = requestDto.Senha };
             var usuarioModelPosHash = GetFakeUsuarioModel(novoId);
             var responseDto = GetFakeUsuarioResponseDto(novoId);
-            
+
             _mapperMock.Setup(m => m.Map<Usuario>(requestDto))
                 .Returns(usuarioModelPreHash);
 
-            // Retorna o Model criado (já com o ID e o Hash)
             _usuarioRepositoryMock.Setup(r => r.AddAsync(It.IsAny<Usuario>()))
                 .ReturnsAsync(usuarioModelPosHash);
 
-            //Mapeamento do Model de Retorno para o Response DTO
             _mapperMock.Setup(m => m.Map<UsuarioResponseDto>(usuarioModelPosHash))
                 .Returns(responseDto);
 
@@ -137,7 +131,7 @@ namespace Inventario.Test.Handlers
 
             _mapperMock.Verify(m => m.Map<Usuario>(requestDto), Times.Once);
             _mapperMock.Verify(m => m.Map<UsuarioResponseDto>(usuarioModelPosHash), Times.Once);
-            
+
             _usuarioRepositoryMock.Verify(r => r.AddAsync(It.Is<Usuario>(u => u.Senha != requestDto.Senha)), Times.Once);
         }
 
@@ -157,7 +151,6 @@ namespace Inventario.Test.Handlers
             _usuarioRepositoryMock.Verify(r => r.AddAsync(It.IsAny<Usuario>()), Times.Never);
         }
 
-        //teste de validade Ver com anderson
 
         #endregion
 
@@ -170,21 +163,18 @@ namespace Inventario.Test.Handlers
             long usuarioId = 1;
             var requestDto = GetFakeUsuarioRequestDto("Nome Atualizado", "email.novo@update.com");
             var usuarioExistente = GetFakeUsuarioModel(usuarioId);
-            
-            var usuarioAtualizado = usuarioExistente; 
-            usuarioAtualizado.Nome = requestDto.Nome;
-            usuarioAtualizado.Email = requestDto.Email; 
-            
-            var responseDto = GetFakeUsuarioResponseDto(usuarioId, usuarioAtualizado.Nome, usuarioAtualizado.Email);
+
+            var usuarioAtualizadoModel = GetFakeUsuarioModel(usuarioId, requestDto.Nome, requestDto.Email);
+            var responseDto = GetFakeUsuarioResponseDto(usuarioId, usuarioAtualizadoModel.Nome, usuarioAtualizadoModel.Email);
 
             _usuarioRepositoryMock.Setup(r => r.GetByIdAsync(usuarioId))
                 .ReturnsAsync(usuarioExistente);
 
 
             _usuarioRepositoryMock.Setup(r => r.UpdateAsync(It.Is<Usuario>(u => u.Id == usuarioId)))
-                .ReturnsAsync(usuarioAtualizado);
+                .ReturnsAsync(usuarioAtualizadoModel);
 
-            _mapperMock.Setup(m => m.Map<UsuarioResponseDto>(usuarioAtualizado))
+            _mapperMock.Setup(m => m.Map<UsuarioResponseDto>(usuarioAtualizadoModel))
                 .Returns(responseDto);
 
 
@@ -194,11 +184,11 @@ namespace Inventario.Test.Handlers
             Assert.True(result.Success);
             Assert.Equal(usuarioId, result.Data.Id);
             Assert.Equal(requestDto.Nome, result.Data.Nome);
-            
-            _usuarioRepositoryMock.Verify(r => r.GetByIdAsync(usuarioId), Times.Once);
-            _usuarioRepositoryMock.Verify(r => r.UpdateAsync(usuarioAtualizado), Times.Once);
 
-            _mapperMock.Verify(m => m.Map<UsuarioResponseDto>(usuarioAtualizado), Times.Once);
+            _usuarioRepositoryMock.Verify(r => r.GetByIdAsync(usuarioId), Times.Once);
+            _usuarioRepositoryMock.Verify(r => r.UpdateAsync(It.Is<Usuario>(u => u.Id == usuarioId && u.Nome == requestDto.Nome && u.Email == requestDto.Email)), Times.Once);
+
+            _mapperMock.Verify(m => m.Map<UsuarioResponseDto>(usuarioAtualizadoModel), Times.Once);
         }
 
         [Fact]
@@ -215,7 +205,7 @@ namespace Inventario.Test.Handlers
             Assert.False(result.Success);
             Assert.Null(result.Data);
 
-            Assert.Contains("O Id do Usuário é obrigatório para atualização.", result.Message); 
+            Assert.Contains("O Id do Usuário é obrigatório para atualização.", result.Message);
 
             _usuarioRepositoryMock.Verify(r => r.GetByIdAsync(It.IsAny<long>()), Times.Never);
             _usuarioRepositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Usuario>()), Times.Never);
@@ -235,7 +225,7 @@ namespace Inventario.Test.Handlers
 
             Assert.False(result.Success);
             Assert.Null(result.Data);
-            Assert.Contains("Usuário não encontrado para atualização.", result.Message); 
+            Assert.Contains("Usuário não encontrado para atualização.", result.Message);
 
             _usuarioRepositoryMock.Verify(r => r.GetByIdAsync(usuarioId), Times.Once);
             _usuarioRepositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Usuario>()), Times.Never);
@@ -245,11 +235,10 @@ namespace Inventario.Test.Handlers
         [Fact]
         public async Task UpdateAsync_DeveLancarExcecao_EmCasoDeErroNoRepositorio()
         {
-            // Arrange
             long usuarioId = 1;
             var requestDto = GetFakeUsuarioRequestDto();
             var exceptionMessage = "Simulação de falha de conexão com o banco de dados.";
-            
+
             _usuarioRepositoryMock.Setup(r => r.GetByIdAsync(usuarioId))
                 .ThrowsAsync(new InvalidOperationException(exceptionMessage));
 
@@ -257,13 +246,12 @@ namespace Inventario.Test.Handlers
 
             Assert.Contains("Erro ao atualizar usuário", exception.Message);
             Assert.Equal(exceptionMessage, exception.InnerException.Message);
-            
+
             _usuarioRepositoryMock.Verify(r => r.GetByIdAsync(usuarioId), Times.Once);
             _usuarioRepositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Usuario>()), Times.Never);
         }
 
-        // validate falar com anderson
-        
+
         #endregion
         #region Testes para DeleteAsync
 
@@ -273,27 +261,27 @@ namespace Inventario.Test.Handlers
         {
             long usuarioId = 1;
             var usuarioExistente = GetFakeUsuarioModel(usuarioId);
-            
+            var usuarioResponseMock = GetFakeUsuarioResponseDto(usuarioId);
+
             _usuarioRepositoryMock.Setup(r => r.GetByIdAsync(usuarioId))
                 .ReturnsAsync(usuarioExistente);
 
             _usuarioRepositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Usuario>()))
-                .ReturnsAsync(usuarioExistente); 
+                .ReturnsAsync(usuarioExistente);
 
             _mapperMock.Setup(m => m.Map<UsuarioResponseDto>(It.IsAny<Usuario>()))
-                .Returns(new UsuarioResponseDto { Id = usuarioId });
-
+                .Returns(usuarioResponseMock);
 
             var result = await _usuarioHandler.DeleteAsync(usuarioId);
 
             Assert.True(result.Success);
-            
+
             Assert.Null(result.Data);
 
             _usuarioRepositoryMock.Verify(r => r.GetByIdAsync(usuarioId), Times.Once);
 
             _usuarioRepositoryMock.Verify(r => r.UpdateAsync(
-                It.Is<Usuario>(u => u.Id == usuarioId && u.DeletedAt != null) 
+                It.Is<Usuario>(u => u.Id == usuarioId && u.DeletedAt != null)
             ), Times.Once);
         }
 
@@ -310,7 +298,7 @@ namespace Inventario.Test.Handlers
 
             Assert.False(result.Success);
             Assert.Null(result.Data);
-            Assert.Contains("Usuário não encontrado para exclusão.", result.Message); 
+            Assert.Contains("Usuário não encontrado para exclusão.", result.Message);
 
             _usuarioRepositoryMock.Verify(r => r.GetByIdAsync(usuarioId), Times.Once);
             _usuarioRepositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Usuario>()), Times.Never);
@@ -322,7 +310,7 @@ namespace Inventario.Test.Handlers
         {
             long usuarioId = 1;
             var exceptionMessage = "Simulação de falha ao buscar no banco de dados.";
-            
+
             _usuarioRepositoryMock.Setup(r => r.GetByIdAsync(usuarioId))
                 .ThrowsAsync(new InvalidOperationException(exceptionMessage));
 
@@ -330,7 +318,7 @@ namespace Inventario.Test.Handlers
 
             Assert.Contains("Erro ao excluir usuário", exception.Message);
             Assert.Equal(exceptionMessage, exception.InnerException.Message);
-            
+
             _usuarioRepositoryMock.Verify(r => r.GetByIdAsync(usuarioId), Times.Once);
             _usuarioRepositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Usuario>()), Times.Never);
         }
