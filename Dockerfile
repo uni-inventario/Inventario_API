@@ -11,6 +11,9 @@ COPY Inventario.Api/ ./Inventario.Api/
 COPY Inventario.Core/ ./Inventario.Core/
 COPY Inventario.Test/ ./Inventario.Test/
 
+WORKDIR /src
+RUN dotnet test ./Inventario.Test/Inventario.Test.csproj --verbosity normal
+
 WORKDIR /src/Inventario.Api
 RUN dotnet publish -c Release -o /app
 
@@ -20,7 +23,5 @@ WORKDIR /app
 COPY --from=build /app .
 
 EXPOSE 8080
-
 ENV ASPNETCORE_URLS=http://0.0.0.0:8080
-
 ENTRYPOINT ["dotnet", "Inventario.Api.dll"]

@@ -8,10 +8,14 @@ namespace Inventario.Test.Repositories
 {
     public class EstoqueRepositoryTests : BaseRepositoryTests
     {
-        #region MOCKS AUXILIARES
-        private Estoque getEstoqueMock()
+        #region TESTES PARA GetByIdAsync
+
+        [Fact]
+        public async Task GetByIdAsync_DeveRetornarEstoqueComProdutosNaoDeletados()
         {
-            return new Estoque
+            var context = CreateContext();
+
+            var estoque = new Estoque
             {
                 Id = 1,
                 UsuarioId = 10,
@@ -22,43 +26,6 @@ namespace Inventario.Test.Repositories
                     new Produto { Id = 2, DeletedAt = DateTime.UtcNow }
                 }
             };
-
-        }
-        private List<Estoque> getEstoquesMock()
-        {
-            return new List<Estoque>
-            {
-                new() {
-                    Id = 1,
-                    UsuarioId = 5,
-                    DeletedAt = null,
-                    Produtos = new List<Produto>
-                    {
-                        new Produto { Id = 1, DeletedAt = null },
-                        new Produto { Id = 2, DeletedAt = DateTime.UtcNow }
-                    }
-                },
-                new() {
-                    Id = 2,
-                    UsuarioId = 5,
-                    DeletedAt = DateTime.UtcNow,
-                    Produtos = new List<Produto>()
-                },
-                new() {
-                    Id = 3,
-                    UsuarioId = 99,
-                    DeletedAt = null
-                }
-            };
-        }
-        #endregion
-        #region TESTES PARA GetByIdAsync
-        // Teste do repositorio da funcionalidade GetByIdAsync
-        [Fact]
-        public async Task GetByIdAsync_DeveRetornarEstoqueComProdutosNaoDeletados()
-        {
-            var context = CreateContext("db_getbyid");
-            var estoque = getEstoqueMock();
 
             context.Estoques.Add(estoque);
             context.SaveChanges();
@@ -72,28 +39,56 @@ namespace Inventario.Test.Repositories
             Assert.Equal(1, result.Produtos.First().Id);
         }
 
-        // Teste do repositorio da funcionalidade GetByIdAsync
         [Fact]
-        public async Task GetByIdAsync_DeveRetornarNull_QuandoNaoEncontrar()
+        public async Task GetByIdAsync_DeveRetornarNullQuandoNaoEncontrar()
         {
-            var context = CreateContext("db_getbyid_empty");
+            var context = CreateContext();
             var repository = new EstoqueRepository(context);
 
             var result = await repository.GetByIdAsync(999, 10);
 
             Assert.Null(result);
         }
+
         #endregion
 
         #region TESTES PARA GetAllAsync
-        // Teste do repositorio da funcionalidade GetAllAsync
+
         [Fact]
         public async Task GetAllAsync_DeveRetornarApenasEstoquesEProdutosNaoDeletados()
         {
-            var context = CreateContext("db_getall");
+            var context = CreateContext();
 
-            context.Estoques.AddRange(getEstoquesMock());
+            var estoques = new List<Estoque>
+            {
+                new Estoque
+                {
+                    Id = 1,
+                    UsuarioId = 5,
+                    DeletedAt = null,
+                    Produtos = new List<Produto>
+                    {
+                        new Produto { Id = 1, DeletedAt = null },
+                        new Produto { Id = 2, DeletedAt = DateTime.UtcNow }
+                    }
+                },
+                new Estoque
+                {
+                    Id = 2,
+                    UsuarioId = 5,
+                    DeletedAt = DateTime.UtcNow,
+                    Produtos = new List<Produto>()
+                },
+                new Estoque
+                {
+                    Id = 3,
+                    UsuarioId = 99,
+                    DeletedAt = null,
+                    Produtos = new List<Produto>()
+                }
+            };
 
+            context.Estoques.AddRange(estoques);
             context.SaveChanges();
 
             var repository = new EstoqueRepository(context);
@@ -105,11 +100,10 @@ namespace Inventario.Test.Repositories
             Assert.Equal(1, result[0].Produtos.First().Id);
         }
 
-        // Teste do repositorio da funcionalidade GetAllAsync
         [Fact]
-        public async Task GetAllAsync_DeveRetornarListaVazia_QuandoNaoHouverEstoques()
+        public async Task GetAllAsync_DeveRetornarListaVaziaQuandoNaoHouverEstoques()
         {
-            var context = CreateContext("db_getall_empty");
+            var context = CreateContext();
 
             var repository = new EstoqueRepository(context);
 
@@ -117,6 +111,7 @@ namespace Inventario.Test.Repositories
 
             Assert.Empty(result);
         }
+
         #endregion
     }
 }
