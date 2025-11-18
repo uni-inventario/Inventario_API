@@ -151,6 +151,7 @@ namespace Inventario.Core.Handlers
                 throw new Exception($"Erro ao deletar Produto: {ex.Message}", ex);
             }
         }
+        
         #region private
         private async Task<ValidationResultDto> Validate(Produto? produto)
         {
