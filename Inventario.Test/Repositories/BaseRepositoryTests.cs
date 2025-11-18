@@ -142,7 +142,7 @@ namespace Inventario.Test.Repositories
             var result = await repository.GetByIdAsync(1);
 
             Assert.NotNull(result);
-            Assert.Equal("Tes", result.Nome);
+            Assert.Equal("Teste", result.Nome);
         }
 
         [Fact]
