@@ -24,7 +24,7 @@ namespace Inventario.Core.Handlers
             _estoqueRepository = estoqueRepository;
             _produtoRepository = produtoRepository;
         }
-        //feto
+        
         public async Task<ApiResponse<List<EstoqueResponseDto>>> GetAllAsync(long usuarioId)
         {
             try
@@ -41,7 +41,7 @@ namespace Inventario.Core.Handlers
                 throw new Exception("Erro ao obter estoques por Id do Usuário:", ex);
             }
         }
-        //feito
+        
         public async Task<ApiResponse<EstoqueResponseDto>> GetByIdAsync(long id, long usuarioId)
         {
             try
@@ -59,7 +59,7 @@ namespace Inventario.Core.Handlers
                 throw new Exception("Erro ao obter estoque por Id:", ex);
             }
         }
-        //feito
+
         public async Task<ApiResponse<EstoqueResponseDto>> AddAsync(EstoqueRequestDto? entity, long usuarioId)
         {
             try
@@ -88,7 +88,7 @@ namespace Inventario.Core.Handlers
                 throw new Exception("Erro ao adicionar estoque:", ex);
             }
         }
-            //FEITO
+        
         public async Task<ApiResponse<EstoqueResponseDto>> UpdateAsync(EstoqueRequestDto? entity, long usuarioId)
         {
             try
@@ -123,7 +123,7 @@ namespace Inventario.Core.Handlers
                 throw new Exception($"Erro ao atualizar estoque: {ex.Message}", ex);
             }
         }
-        //feito
+
         public async Task<ApiResponse<EstoqueResponseDto>> DeleteAsync(long id, long usuarioId)
         {
             try
@@ -166,7 +166,7 @@ namespace Inventario.Core.Handlers
         {
             var errors = new List<string>();
 
-            if (string.IsNullOrEmpty(estoque.Nome))
+            if (string.IsNullOrWhiteSpace(estoque.Nome))
                 return new ValidationResultDto
                 {
                     IsValid = false,
